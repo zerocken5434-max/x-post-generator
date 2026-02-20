@@ -284,6 +284,17 @@
     .char-count.over { color: #e53935; font-weight: 700; }
     .char-count.warn { color: var(--accent); }
 
+    .auto-notice {
+      background: var(--primary-light);
+      border: 1px solid #a8d5b5;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
     .copy-btn {
       padding: 6px 14px;
       border: 1.5px solid var(--primary);
@@ -407,8 +418,8 @@
     </div>
 
     <div class="form-group">
-      <label for="features">特徴・アピールポイント</label>
-      <textarea id="features" placeholder="例：今が旬！甘みが強く果汁たっぷり。地元農家さんから届いたばかりの新鮮品です。"></textarea>
+      <label for="features">特徴・アピールポイント <span style="font-weight:normal;color:var(--primary);font-size:11px">（空欄でも自動で考えます）</span></label>
+      <textarea id="features" placeholder="例：今が旬！甘みが強く果汁たっぷり。地元農家さんから届いたばかりの新鮮品です。&#10;※空欄のままでも商品名から自動生成します"></textarea>
     </div>
   </div>
 
@@ -484,6 +495,7 @@
 
   <div id="results">
     <div class="results-header">💬 生成された投稿文案</div>
+    <div id="auto-notice" class="auto-notice" style="display:none">✨ 特徴・アピールポイントを商品名から自動生成しました</div>
 
     <div class="post-card">
       <div class="pattern-label">パターン 1</div>
@@ -550,27 +562,28 @@ const seasonPhrases = {
   "":             ["道の駅といえば", "今日もお待ちしています！", "ご来店ありがとうございます"]
 };
 
+// テンプレートには、ラップ済みの特徴フレーズがそのまま渡される
 const toneTemplates = {
   friendly: [
-    (p, f, s) => `${s}、${p}が入荷しています🎵\n${f ? trimFeature(f, 35) + '\n' : ''}ぜひ道の駅 萩さんさん三見へ遊びにきてくださいね😊`,
-    (p, f, s) => `こんにちは！${s}、今日も${p}が並んでいますよ🛒\n${f ? trimFeature(f, 30) + '\n' : ''}皆さんのご来店お待ちしています♪`,
-    (p, f, s) => `${s}${p}をご紹介します✨\n${f ? trimFeature(f, 40) + '\n' : ''}道の駅 萩さんさん三見でお買い求めください🙌`,
-    (p, f, s) => `${s}、${p}が大好評です！\n${f ? trimFeature(f, 35) + '\n' : ''}お近くにお越しの際はぜひ立ち寄ってみてください😄`,
-    (p, f, s) => `${s}、萩さんさん三見に${p}が登場！\n${f ? trimFeature(f, 38) + '\n' : ''}お気軽にのぞいてみてくださいね🌿`
+    (p, f, s) => `${s}、${p}が入荷しています🎵\n${f ? f + '\n' : ''}ぜひ道の駅 萩さんさん三見へ遊びにきてくださいね😊`,
+    (p, f, s) => `こんにちは！${s}、今日も${p}が並んでいますよ🛒\n${f ? f + '\n' : ''}皆さんのご来店お待ちしています♪`,
+    (p, f, s) => `${s}${p}をご紹介します✨\n${f ? f + '\n' : ''}道の駅 萩さんさん三見でお買い求めください🙌`,
+    (p, f, s) => `${s}、${p}が大好評です！\n${f ? f + '\n' : ''}お近くにお越しの際はぜひ立ち寄ってみてください😄`,
+    (p, f, s) => `${s}、萩さんさん三見に${p}が登場！\n${f ? f + '\n' : ''}お気軽にのぞいてみてくださいね🌿`
   ],
   info: [
-    (p, f, s) => `【入荷情報】${s}、${p}が並んでいます。\n${f ? trimFeature(f, 40) + '\n' : ''}道の駅 萩さんさん三見にてお買い求めいただけます。`,
-    (p, f, s) => `📍道の駅 萩さんさん三見\n${s}、${p}が入荷しました。\n${f ? trimFeature(f, 38) : 'ぜひお立ち寄りください。'}`,
-    (p, f, s) => `【今日のおすすめ】${p}\n${f ? trimFeature(f, 45) + '\n' : ''}${s}、萩さんさん三見でお待ちしております。`,
-    (p, f, s) => `${s}の${p}、販売中です。\n${f ? trimFeature(f, 45) + '\n' : ''}開館時間内にぜひお越しください📌`,
-    (p, f, s) => `産地直送！${p}\n${f ? trimFeature(f, 40) + '\n' : ''}${s}、道の駅 萩さんさん三見へどうぞ。`
+    (p, f, s) => `【入荷情報】${s}、${p}が並んでいます。\n${f ? f + '\n' : ''}道の駅 萩さんさん三見にてお買い求めいただけます。`,
+    (p, f, s) => `📍道の駅 萩さんさん三見\n${s}、${p}が入荷しました。\n${f || 'ぜひお立ち寄りください。'}`,
+    (p, f, s) => `【今日のおすすめ】${p}\n${f ? f + '\n' : ''}${s}、萩さんさん三見でお待ちしております。`,
+    (p, f, s) => `${s}の${p}、販売中です。\n${f ? f + '\n' : ''}開館時間内にぜひお越しください📌`,
+    (p, f, s) => `産地直送！${p}\n${f ? f + '\n' : ''}${s}、道の駅 萩さんさん三見へどうぞ。`
   ],
   exciting: [
-    (p, f, s) => `🎉待ってました！${s}${p}が登場！\n${f ? trimFeature(f, 35) + '\n' : ''}今すぐ萩さんさん三見へGO🚗💨`,
-    (p, f, s) => `✨見て見て！${p}が入荷しましたよ〜！\n${f ? trimFeature(f, 35) + '\n' : ''}${s}、絶対見逃せない！急いで！😆`,
-    (p, f, s) => `🔥大注目！${s}の${p}、最高です！\n${f ? trimFeature(f, 38) + '\n' : ''}萩さんさん三見で絶賛販売中🛒`,
-    (p, f, s) => `わ〜！${p}が出そろいました✨\n${f ? trimFeature(f, 35) + '\n' : ''}${s}のこの感動、ぜひ体験しに来て！🙌`,
-    (p, f, s) => `🌟今が絶対旬！${p}！\n${f ? trimFeature(f, 40) + '\n' : ''}${s}、萩さんさん三見で運命の一品に出会って！`
+    (p, f, s) => `🎉待ってました！${s}${p}が登場！\n${f ? f + '\n' : ''}今すぐ萩さんさん三見へGO🚗💨`,
+    (p, f, s) => `✨見て見て！${p}が入荷しましたよ〜！\n${f ? f + '\n' : ''}${s}、絶対見逃せない！急いで！😆`,
+    (p, f, s) => `🔥大注目！${s}の${p}、最高です！\n${f ? f + '\n' : ''}萩さんさん三見で絶賛販売中🛒`,
+    (p, f, s) => `わ〜！${p}が出そろいました✨\n${f ? f + '\n' : ''}${s}のこの感動、ぜひ体験しに来て！🙌`,
+    (p, f, s) => `🌟今が絶対旬！${p}！\n${f ? f + '\n' : ''}${s}、萩さんさん三見で運命の一品に出会って！`
   ]
 };
 
@@ -618,6 +631,65 @@ const seasonHashtags = {
 };
 
 // ============================================================
+//  自動特徴生成データ
+// ============================================================
+
+const autoFeatureMap = {
+  "文旦":     ["甘みたっぷりで果汁豊富、今が旬", "さわやかな香りと濃厚な甘さが魅力", "肉厚ジューシー、ビタミンCたっぷり", "皮ごと楽しめる地元産の逸品"],
+  "たい焼き": ["外はサクサク、中はあんこたっぷり", "クロワッサン生地でサクふわ食感", "熱々できたて、甘さ控えめで絶品", "地元で大人気のロングセラー商品"],
+  "クロワッサン": ["バターの香り豊かなサクサク食感", "外はパリッと、中はもっちり", "地元産小麦を使ったこだわりの一品"],
+  "野菜":     ["朝採れ新鮮、地元農家さんから直送", "採れたての鮮度と旨みが自慢", "彩り豊かで栄養たっぷり"],
+  "魚":       ["萩港水揚げの新鮮な地魚", "朝獲れ鮮魚、旨みが凝縮", "日本海の恵みをそのまま食卓へ"],
+  "イカ":     ["萩名物、透明感抜群の新鮮イカ", "刺身にしても焼いても絶品", "日本海産の肉厚で甘みあるイカ"],
+  "みかん":   ["甘くてジューシー、皮薄で食べやすい", "地元農家さん自慢の濃厚な甘さ", "旬の柑橘、ビタミンCたっぷり"],
+  "いちご":   ["完熟で甘さ抜群、香りも最高", "真っ赤な完熟いちごが登場", "甘酸っぱくてジューシーな旬の味"],
+  "かぼちゃ": ["ほくほく甘くて栄養満点", "地元産の肉厚でホクホクかぼちゃ", "スープやコロッケにも最高"],
+  "お米":     ["地元で育てた新米、もちもち食感", "農家直送の新鮮なお米", "炊き立てのふっくら感が格別"],
+  "弁当":     ["地元食材を使った手作りお弁当", "毎日仕込む手作り弁当が並んでいます", "ボリューム満点、地元の味をどうぞ"],
+  "お弁当":   ["地元食材を使った手作りお弁当", "毎日仕込む手作り弁当が並んでいます", "ボリューム満点、地元の味をどうぞ"],
+  "梅":       ["すっぱくて風味豊か、ご飯が進む", "手作りの梅干し、昔ながらの味", "地元産の梅を使った自慢の逸品"],
+  "アスパラ": ["肉厚でシャキシャキ、甘みが強い", "朝採れアスパラ、鮮度が違います", "太くて柔らか、旬のアスパラ"],
+  "スイーツ": ["地元素材を活かした手作りスイーツ", "素朴でやさしい甘さが人気", "お土産にも喜ばれる逸品"],
+  "ジャム":   ["地元産フルーツをたっぷり使用", "添加物不使用の手作りジャム", "果肉ごろごろ、濃厚な味わい"],
+  "トマト":   ["完熟で甘みたっぷり、旨みが凝縮", "地元農家の朝採れ完熟トマト", "そのまま食べても絶品の甘さ"],
+  "じゃがいも": ["ほくほく食感、地元農家さん直送", "コロッケ・シチューに最高の旨さ", "地元産の新鮮じゃがいも"]
+};
+
+const autoFeatureFallback = [
+  "地元産のこだわり逸品",
+  "萩の恵みをたっぷり詰め込んでいます",
+  "地元農家さんから直送の新鮮品",
+  "道の駅スタッフのイチ推し商品",
+  "今だけの季節限定品をお見逃しなく",
+  "萩の自然が育てた自慢の一品"
+];
+
+// 特徴の表現ラッパー（トーン別・パターンごとに変化）
+const featureWrappers = {
+  friendly: [
+    f => f,
+    f => `実は${f}✨`,
+    f => `${f}なんですよ〜！`,
+    f => `知ってた？${f}`,
+    f => `${f}、ぜひ一度試して♪`
+  ],
+  info: [
+    f => f,
+    f => `【特徴】${f}`,
+    f => `ポイントは${f}`,
+    f => `${f}（産地直送）`,
+    f => `特徴：${f}`
+  ],
+  exciting: [
+    f => `${f}、もう最高！`,
+    f => `しかも${f}！`,
+    f => `なんと${f}🔥`,
+    f => `${f}…もう買うしかない！`,
+    f => `${f}って知ってた？`
+  ]
+};
+
+// ============================================================
 //  ユーティリティ
 // ============================================================
 
@@ -625,6 +697,13 @@ function trimFeature(text, maxLen) {
   text = text.trim();
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen - 1) + '…';
+}
+
+function getAutoFeature(product) {
+  for (const [key, phrases] of Object.entries(autoFeatureMap)) {
+    if (product.includes(key)) return rand(phrases);
+  }
+  return rand(autoFeatureFallback);
 }
 
 function rand(arr) {
@@ -674,40 +753,57 @@ function generatePosts() {
     return;
   }
 
-  const features = document.getElementById('features').value.trim();
-  const season   = document.getElementById('season').value;
-  const tone     = document.querySelector('input[name="tone"]:checked').value;
+  const userFeature   = document.getElementById('features').value.trim();
+  const isAutoFeature = !userFeature;
+  const season        = document.getElementById('season').value;
+  const tone          = document.querySelector('input[name="tone"]:checked').value;
 
   const seasonArr = seasonPhrases[season] || seasonPhrases[""];
   const templates = toneTemplates[tone];
+  const wrappers  = featureWrappers[tone];
 
   // 使用済みインデックスを管理して重複を避ける
-  const usedSeasonIdx = new Set();
-  const usedTmplIdx  = new Set();
+  const usedSeasonIdx  = new Set();
+  const usedTmplIdx    = new Set();
+  const usedWrapperIdx = new Set();
 
   const posts = [];
   for (let i = 0; i < 3; i++) {
-    let sIdx, tIdx;
+    let sIdx;
     do { sIdx = Math.floor(Math.random() * seasonArr.length); }
     while (usedSeasonIdx.has(sIdx) && usedSeasonIdx.size < seasonArr.length);
     usedSeasonIdx.add(sIdx);
 
+    let tIdx;
     do { tIdx = Math.floor(Math.random() * templates.length); }
     while (usedTmplIdx.has(tIdx) && usedTmplIdx.size < templates.length);
     usedTmplIdx.add(tIdx);
 
-    const seasonPhrase = seasonArr[sIdx];
-    const raw = templates[tIdx](product, features, seasonPhrase);
+    // 空欄なら自動生成（パターンごとに毎回引き直す）
+    const rawFeature     = userFeature || getAutoFeature(product);
+    const trimmedFeature = trimFeature(rawFeature, 32);
+
+    // 表現ラッパーを選択（重複回避）
+    let wIdx;
+    do { wIdx = Math.floor(Math.random() * wrappers.length); }
+    while (usedWrapperIdx.has(wIdx) && usedWrapperIdx.size < wrappers.length);
+    usedWrapperIdx.add(wIdx);
+
+    const wrappedFeature = wrappers[wIdx](trimmedFeature);
+    const seasonPhrase   = seasonArr[sIdx];
+    const raw = templates[tIdx](product, wrappedFeature, seasonPhrase);
     posts.push(truncateToLimit(raw, 140));
   }
 
-  // 表示
+  // 自動生成ノーティスの表示制御
+  document.getElementById('auto-notice').style.display = isAutoFeature ? 'block' : 'none';
+
+  // 投稿文の表示
   for (let i = 1; i <= 3; i++) {
     const el = document.getElementById(`post${i}`);
     el.textContent = posts[i - 1];
     setCharCount(document.getElementById(`count${i}`), posts[i - 1]);
 
-    // コピーボタンをリセット
     const btn = el.parentElement.querySelector('.copy-btn');
     btn.textContent = 'コピー';
     btn.classList.remove('copied');
@@ -770,16 +866,18 @@ function generatePosts() {
 
 function copyPost(n) {
   const text = document.getElementById(`post${n}`).textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector(`#post${n}`).parentElement.parentElement.querySelector('.copy-btn');
+  const btn  = document.querySelector(`#post${n}`).parentElement.parentElement.querySelector('.copy-btn');
+
+  const markCopied = () => {
     btn.textContent = 'コピー済み✓';
     btn.classList.add('copied');
     setTimeout(() => {
       btn.textContent = 'コピー';
       btn.classList.remove('copied');
     }, 2000);
-  }).catch(() => {
-    // フォールバック
+  };
+
+  navigator.clipboard.writeText(text).then(markCopied).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
@@ -788,14 +886,7 @@ function copyPost(n) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-
-    const btn = document.querySelector(`#post${n}`).parentElement.parentElement.querySelector('.copy-btn');
-    btn.textContent = 'コピー済み✓';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = 'コピー';
-      btn.classList.remove('copied');
-    }, 2000);
+    markCopied();
   });
 }
 
