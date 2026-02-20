@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X投稿文ジェネレーター｜道の駅 萩さんさん三見</title>
+  <style>
+    :root {
+      --primary: #2d7d46;
+      --primary-light: #e8f5ec;
+      --primary-dark: #1a5c31;
+      --accent: #e8a020;
+      --accent-light: #fdf3e0;
+      --text: #222;
+      --text-muted: #666;
+      --border: #d0d0d0;
+      --bg: #f7f9f7;
+      --white: #fff;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 20px 16px 18px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    header .station-name {
+      font-size: 12px;
+      opacity: 0.85;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    header .subtitle {
+      font-size: 12px;
+      opacity: 0.75;
+      margin-top: 4px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(45, 125, 70, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper::after {
+      content: '▾';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      font-size: 14px;
+    }
+
+    .tone-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tone-option {
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .tone-option input[type="radio"] {
+      display: none;
+    }
+
+    .tone-option label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--white);
+    }
+
+    .tone-option label .emoji {
+      font-size: 22px;
+    }
+
+    .tone-option input[type="radio"]:checked + label {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 14px rgba(45, 125, 70, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(45, 125, 70, 0.4);
+    }
+
+    .generate-btn:active {
+      transform: translateY(0);
+    }
+
+    .generate-btn .btn-icon {
+      font-size: 20px;
+    }
+
+    /* Results */
+    #results { display: none; }
+
+    .results-header {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .post-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid var(--primary);
+      position: relative;
+    }
+
+    .post-card:nth-child(2) { border-left-color: var(--accent); }
+    .post-card:nth-child(3) { border-left-color: #7b68ee; }
+
+    .post-card .pattern-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .post-card .post-text {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .post-card .post-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .char-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .char-count.over { color: #e53935; font-weight: 700; }
+    .char-count.warn { color: var(--accent); }
+
+    .copy-btn {
+      padding: 6px 14px;
+      border: 1.5px solid var(--primary);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .copy-btn.copied {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    /* Hashtags */
+    .hashtag-section {
+      background: var(--accent-light);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 4px;
+    }
+
+    .hashtag-section h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #7a5500;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hashtag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hashtag-tag {
+      background: var(--white);
+      border: 1.5px solid #f0c060;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: #7a5500;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: all;
+    }
+
+    .hashtag-tag:hover {
+      background: var(--accent);
+      color: var(--white);
+      border-color: var(--accent);
+    }
+
+    .regenerate-btn {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .regenerate-btn:hover {
+      background: var(--primary-light);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 20px 16px;
+    }
+
+    @media (max-width: 400px) {
+      header h1 { font-size: 17px; }
+      .tone-group { gap: 6px; }
+      .tone-option label { padding: 10px 6px; font-size: 12px; }
+      .tone-option label .emoji { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="station-name">道の駅 萩さんさん三見</div>
+  <h1>✏️ X投稿文ジェネレーター</h1>
+  <div class="subtitle">SNS投稿文を自動で3パターン生成します</div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>商品情報</h2>
+
+    <div class="form-group">
+      <label for="product">商品名 <span style="color:#e53935">*</span></label>
+      <input type="text" id="product" placeholder="例：文旦、クロワッサンたい焼き、新鮮野菜セット" maxlength="50">
+    </div>
+
+    <div class="form-group">
+      <label for="features">特徴・アピールポイント</label>
+      <textarea id="features" placeholder="例：今が旬！甘みが強く果汁たっぷり。地元農家さんから届いたばかりの新鮮品です。"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>状況設定</h2>
+
+    <div class="form-group">
+      <label for="season">季節・天気</label>
+      <div class="select-wrapper">
+        <select id="season">
+          <option value="">-- 選択してください --</option>
+          <optgroup label="春">
+            <option value="spring_sunny">春・晴れ</option>
+            <option value="spring_warm">春・暖かい日</option>
+            <option value="spring_cherry">春・桜の季節</option>
+          </optgroup>
+          <optgroup label="夏">
+            <option value="summer_hot">夏・暑い日</option>
+            <option value="summer_sunny">夏・晴天</option>
+            <option value="summer_beach">夏・海水浴シーズン</option>
+          </optgroup>
+          <optgroup label="秋">
+            <option value="autumn_sunny">秋・晴れ</option>
+            <option value="autumn_harvest">秋・収穫の季節</option>
+            <option value="autumn_cool">秋・涼しい日</option>
+          </optgroup>
+          <optgroup label="冬">
+            <option value="winter_cold">冬・寒い日</option>
+            <option value="winter_sunny">冬・晴天</option>
+            <option value="winter_holiday">冬・年末年始</option>
+          </optgroup>
+          <optgroup label="その他">
+            <option value="rain">雨の日</option>
+            <option value="weekend">週末・連休</option>
+            <option value="morning">朝一番</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>投稿のトーン</label>
+      <div class="tone-group">
+        <div class="tone-option">
+          <input type="radio" name="tone" id="tone-friendly" value="friendly" checked>
+          <label for="tone-friendly">
+            <span class="emoji">😊</span>
+            親しみやすい
+          </label>
+        </div>
+        <div class="tone-option">
+          <input type="radio" name="tone" id="tone-info" value="info">
+          <label for="tone-info">
+            <span class="emoji">📢</span>
+            情報的
+          </label>
+        </div>
+        <div class="tone-option">
+          <input type="radio" name="tone" id="tone-exciting" value="exciting">
+          <label for="tone-exciting">
+            <span class="emoji">🎉</span>
+            ワクワク感
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="generate-btn" onclick="generatePosts()">
+    <span class="btn-icon">✨</span>
+    投稿文を生成する
+  </button>
+
+  <div id="results">
+    <div class="results-header">💬 生成された投稿文案</div>
+
+    <div class="post-card">
+      <div class="pattern-label">パターン 1</div>
+      <div class="post-text" id="post1"></div>
+      <div class="post-meta">
+        <span class="char-count" id="count1"></span>
+        <button class="copy-btn" onclick="copyPost(1)">コピー</button>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="pattern-label">パターン 2</div>
+      <div class="post-text" id="post2"></div>
+      <div class="post-meta">
+        <span class="char-count" id="count2"></span>
+        <button class="copy-btn" onclick="copyPost(2)">コピー</button>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="pattern-label">パターン 3</div>
+      <div class="post-text" id="post3"></div>
+      <div class="post-meta">
+        <span class="char-count" id="count3"></span>
+        <button class="copy-btn" onclick="copyPost(3)">コピー</button>
+      </div>
+    </div>
+
+    <div class="hashtag-section">
+      <h3># ハッシュタグ候補（タップでコピー）</h3>
+      <div class="hashtag-list" id="hashtags"></div>
+    </div>
+
+    <button class="regenerate-btn" onclick="generatePosts()">
+      🔄 別のパターンを生成
+    </button>
+  </div>
+
+</div>
+
+<footer>道の駅 萩さんさん三見 SNS投稿支援ツール</footer>
+
+<script>
+// ============================================================
+//  テンプレートデータ
+// ============================================================
+
+const seasonPhrases = {
+  spring_sunny:   ["春の陽気に誘われて", "ぽかぽか陽気の今日", "春らしいお天気の中"],
+  spring_warm:    ["暖かな春の日差しの中", "穏やかな春の一日", "春の温もりを感じながら"],
+  spring_cherry:  ["桜咲くこの季節に", "お花見帰りにぜひ！", "春爛漫のこの頃"],
+  summer_hot:     ["暑い夏に負けず", "真夏の熱い日差しの下", "夏バテ知らずに過ごすために"],
+  summer_sunny:   ["夏の青空の下", "太陽サンサン！", "晴れ渡る夏空に映える"],
+  summer_beach:   ["海水浴シーズン到来！", "夏の萩に来たなら", "潮風を感じながら"],
+  autumn_sunny:   ["秋晴れの気持ちいい今日", "さわやかな秋の日に", "澄んだ秋空の下"],
+  autumn_harvest: ["実りの秋に感謝！", "豊かな収穫の季節", "秋の恵みをお届け"],
+  autumn_cool:    ["涼しくなってきた今日この頃", "秋風そよぐ季節に", "ひんやり気持ちいい秋の日"],
+  winter_cold:    ["寒い日こそ来てほしい！", "冬の冷たい空気の中で", "ぽかぽか温まる冬の一日"],
+  winter_sunny:   ["冬晴れの澄んだ空の下", "冬の澄んだ青空に映えて", "冬のキリッとした空気の中"],
+  winter_holiday: ["年末年始の特別な時期に", "お正月気分で", "新年最初のお買い物に"],
+  rain:           ["雨の日もお店の中はにぎやか！", "雨だからこそゆっくり見られる", "雨でもドライブがてら"],
+  weekend:        ["週末のお出かけに", "連休のお立ち寄りに", "週末ドライブのついでに"],
+  morning:        ["朝一番に入荷！", "今朝届いたばかりの", "早起きは三文の徳！"],
+  "":             ["道の駅といえば", "今日もお待ちしています！", "ご来店ありがとうございます"]
+};
+
+const toneTemplates = {
+  friendly: [
+    (p, f, s) => `${s}、${p}が入荷しています🎵\n${f ? trimFeature(f, 35) + '\n' : ''}ぜひ道の駅 萩さんさん三見へ遊びにきてくださいね😊`,
+    (p, f, s) => `こんにちは！${s}、今日も${p}が並んでいますよ🛒\n${f ? trimFeature(f, 30) + '\n' : ''}皆さんのご来店お待ちしています♪`,
+    (p, f, s) => `${s}${p}をご紹介します✨\n${f ? trimFeature(f, 40) + '\n' : ''}道の駅 萩さんさん三見でお買い求めください🙌`,
+    (p, f, s) => `${s}、${p}が大好評です！\n${f ? trimFeature(f, 35) + '\n' : ''}お近くにお越しの際はぜひ立ち寄ってみてください😄`,
+    (p, f, s) => `${s}、萩さんさん三見に${p}が登場！\n${f ? trimFeature(f, 38) + '\n' : ''}お気軽にのぞいてみてくださいね🌿`
+  ],
+  info: [
+    (p, f, s) => `【入荷情報】${s}、${p}が並んでいます。\n${f ? trimFeature(f, 40) + '\n' : ''}道の駅 萩さんさん三見にてお買い求めいただけます。`,
+    (p, f, s) => `📍道の駅 萩さんさん三見\n${s}、${p}が入荷しました。\n${f ? trimFeature(f, 38) : 'ぜひお立ち寄りください。'}`,
+    (p, f, s) => `【今日のおすすめ】${p}\n${f ? trimFeature(f, 45) + '\n' : ''}${s}、萩さんさん三見でお待ちしております。`,
+    (p, f, s) => `${s}の${p}、販売中です。\n${f ? trimFeature(f, 45) + '\n' : ''}開館時間内にぜひお越しください📌`,
+    (p, f, s) => `産地直送！${p}\n${f ? trimFeature(f, 40) + '\n' : ''}${s}、道の駅 萩さんさん三見へどうぞ。`
+  ],
+  exciting: [
+    (p, f, s) => `🎉待ってました！${s}${p}が登場！\n${f ? trimFeature(f, 35) + '\n' : ''}今すぐ萩さんさん三見へGO🚗💨`,
+    (p, f, s) => `✨見て見て！${p}が入荷しましたよ〜！\n${f ? trimFeature(f, 35) + '\n' : ''}${s}、絶対見逃せない！急いで！😆`,
+    (p, f, s) => `🔥大注目！${s}の${p}、最高です！\n${f ? trimFeature(f, 38) + '\n' : ''}萩さんさん三見で絶賛販売中🛒`,
+    (p, f, s) => `わ〜！${p}が出そろいました✨\n${f ? trimFeature(f, 35) + '\n' : ''}${s}のこの感動、ぜひ体験しに来て！🙌`,
+    (p, f, s) => `🌟今が絶対旬！${p}！\n${f ? trimFeature(f, 40) + '\n' : ''}${s}、萩さんさん三見で運命の一品に出会って！`
+  ]
+};
+
+const baseHashtags = [
+  "#道の駅", "#萩さんさん三見", "#萩市", "#山口県", "#道の駅グルメ",
+  "#産地直送", "#地元の味", "#ドライブ", "#週末お出かけ", "#道の駅めぐり"
+];
+
+const productHashtagMap = {
+  "文旦": ["#文旦", "#柑橘", "#みかん"],
+  "たい焼き": ["#たい焼き", "#クロワッサンたい焼き", "#スイーツ"],
+  "クロワッサン": ["#クロワッサン", "#パン", "#スイーツ"],
+  "野菜": ["#新鮮野菜", "#地元野菜", "#有機野菜"],
+  "魚": ["#海産物", "#鮮魚", "#萩の魚"],
+  "イカ": ["#イカ", "#萩のイカ", "#海産物"],
+  "みかん": ["#みかん", "#柑橘", "#フルーツ"],
+  "いちご": ["#いちご", "#苺", "#フルーツ"],
+  "かぼちゃ": ["#かぼちゃ", "#秋野菜", "#地元野菜"],
+  "お米": ["#お米", "#新米", "#地元米"],
+  "弁当": ["#お弁当", "#ランチ", "#手作り"],
+  "お弁当": ["#お弁当", "#ランチ", "#手作り"],
+  "スイーツ": ["#スイーツ", "#和菓子", "#手作りスイーツ"],
+  "ジャム": ["#ジャム", "#手作りジャム", "#フルーツ"],
+  "梅": ["#梅", "#梅干し", "#山口の恵み"],
+  "アスパラ": ["#アスパラガス", "#春野菜", "#新鮮野菜"],
+};
+
+const seasonHashtags = {
+  spring_sunny: ["#春", "#春のお出かけ"],
+  spring_warm:  ["#春", "#春の味覚"],
+  spring_cherry:["#花見", "#春", "#桜"],
+  summer_hot:   ["#夏", "#夏グルメ"],
+  summer_sunny: ["#夏", "#夏の思い出"],
+  summer_beach: ["#夏旅", "#萩観光"],
+  autumn_sunny: ["#秋", "#秋晴れ"],
+  autumn_harvest:["#秋の味覚", "#収穫祭"],
+  autumn_cool:  ["#秋", "#秋のドライブ"],
+  winter_cold:  ["#冬", "#冬の味覚"],
+  winter_sunny: ["#冬晴れ", "#冬"],
+  winter_holiday:["#年末年始", "#お正月"],
+  rain:         ["#雨の日"],
+  weekend:      ["#週末", "#お出かけ"],
+  morning:      ["#朝市", "#朝一番"],
+  "":           []
+};
+
+// ============================================================
+//  ユーティリティ
+// ============================================================
+
+function trimFeature(text, maxLen) {
+  text = text.trim();
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen - 1) + '…';
+}
+
+function rand(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function countChars(text) {
+  // Xの文字カウント: ASCII=0.5文字、その他=1文字 として概算
+  let count = 0;
+  for (const ch of text) {
+    count += (ch.charCodeAt(0) < 256) ? 0.5 : 1;
+  }
+  return Math.ceil(count);
+}
+
+function truncateToLimit(text, limit = 140) {
+  let count = 0;
+  let i = 0;
+  for (i = 0; i < text.length; i++) {
+    const add = (text.charCodeAt(i) < 256) ? 0.5 : 1;
+    if (count + add > limit) break;
+    count += add;
+  }
+  if (i < text.length) {
+    return text.slice(0, i - 1) + '…';
+  }
+  return text;
+}
+
+function setCharCount(el, text) {
+  const count = countChars(text);
+  el.textContent = `${count} / 140文字`;
+  el.className = 'char-count';
+  if (count > 140) el.classList.add('over');
+  else if (count > 120) el.classList.add('warn');
+}
+
+// ============================================================
+//  メイン生成ロジック
+// ============================================================
+
+function generatePosts() {
+  const product = document.getElementById('product').value.trim();
+  if (!product) {
+    alert('商品名を入力してください。');
+    document.getElementById('product').focus();
+    return;
+  }
+
+  const features = document.getElementById('features').value.trim();
+  const season   = document.getElementById('season').value;
+  const tone     = document.querySelector('input[name="tone"]:checked').value;
+
+  const seasonArr = seasonPhrases[season] || seasonPhrases[""];
+  const templates = toneTemplates[tone];
+
+  // 使用済みインデックスを管理して重複を避ける
+  const usedSeasonIdx = new Set();
+  const usedTmplIdx  = new Set();
+
+  const posts = [];
+  for (let i = 0; i < 3; i++) {
+    let sIdx, tIdx;
+    do { sIdx = Math.floor(Math.random() * seasonArr.length); }
+    while (usedSeasonIdx.has(sIdx) && usedSeasonIdx.size < seasonArr.length);
+    usedSeasonIdx.add(sIdx);
+
+    do { tIdx = Math.floor(Math.random() * templates.length); }
+    while (usedTmplIdx.has(tIdx) && usedTmplIdx.size < templates.length);
+    usedTmplIdx.add(tIdx);
+
+    const seasonPhrase = seasonArr[sIdx];
+    const raw = templates[tIdx](product, features, seasonPhrase);
+    posts.push(truncateToLimit(raw, 140));
+  }
+
+  // 表示
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`post${i}`);
+    el.textContent = posts[i - 1];
+    setCharCount(document.getElementById(`count${i}`), posts[i - 1]);
+
+    // コピーボタンをリセット
+    const btn = el.parentElement.querySelector('.copy-btn');
+    btn.textContent = 'コピー';
+    btn.classList.remove('copied');
+  }
+
+  // ハッシュタグ生成
+  const tags = new Set();
+  tags.add("#道の駅");
+  tags.add("#萩さんさん三見");
+
+  // 商品名マッチング
+  for (const [key, values] of Object.entries(productHashtagMap)) {
+    if (product.includes(key)) {
+      values.forEach(t => tags.add(t));
+      break;
+    }
+  }
+
+  // 季節タグ
+  (seasonHashtags[season] || []).forEach(t => tags.add(t));
+
+  // 基本タグから補充（最大10個）
+  for (const t of baseHashtags) {
+    if (tags.size >= 10) break;
+    tags.add(t);
+  }
+
+  const hashtagEl = document.getElementById('hashtags');
+  hashtagEl.innerHTML = '';
+  tags.forEach(tag => {
+    const span = document.createElement('span');
+    span.className = 'hashtag-tag';
+    span.textContent = tag;
+    span.title = 'タップでコピー';
+    span.addEventListener('click', () => {
+      navigator.clipboard.writeText(tag).then(() => {
+        const orig = span.style.background;
+        span.style.background = '#2d7d46';
+        span.style.color = '#fff';
+        span.style.borderColor = '#2d7d46';
+        setTimeout(() => {
+          span.style.background = '';
+          span.style.color = '';
+          span.style.borderColor = '';
+        }, 1200);
+      });
+    });
+    hashtagEl.appendChild(span);
+  });
+
+  // 結果エリア表示
+  const resultsEl = document.getElementById('results');
+  resultsEl.style.display = 'block';
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ============================================================
+//  コピー機能
+// ============================================================
+
+function copyPost(n) {
+  const text = document.getElementById(`post${n}`).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(`#post${n}`).parentElement.parentElement.querySelector('.copy-btn');
+    btn.textContent = 'コピー済み✓';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'コピー';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // フォールバック
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+
+    const btn = document.querySelector(`#post${n}`).parentElement.parentElement.querySelector('.copy-btn');
+    btn.textContent = 'コピー済み✓';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'コピー';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// Enterキーで生成
+document.getElementById('product').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') generatePosts();
+});
+</script>
+</body>
+</html>
